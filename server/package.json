@@ -1,0 +1,20 @@
+{
+  "name": "ksv-skill-sets-server",
+  "version": "1.0.0",
+  "description": "KSV Skill Sets - Backend API Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "jest --runInBand --forceExit",
+    "seed": "node scripts/seed.js",
+    "setup-admin": "node scripts/setupAdmin.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
