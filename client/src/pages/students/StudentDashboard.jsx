@@ -10,12 +10,14 @@ import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tool
 import { Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import StudentPortfolio from '../../components/students/StudentPortfolio';
+
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [assessmentData, setAssessmentData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [studentId, setStudentId] = useState(null);
+  const [studentId, setStudentId] = useState(() => user?.studentRef || 'student_demo_1');
 
   useEffect(() => {
     assessmentsApi.list({ limit: 100, status: 'approved' })
@@ -52,14 +54,16 @@ export default function StudentDashboard() {
 
   if (loading) return <PageLoader />;
 
+  const activeStudentId = user?.studentRef || studentId || 'student_demo_1';
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">My Skills</h1>
+          <h1 className="text-2xl font-bold text-slate-800">My Student Profile & Skills</h1>
           <p className="text-slate-500 text-sm mt-0.5">Welcome, {user?.name}</p>
         </div>
-        {studentId && (
+        {activeStudentId && (
           <Button variant="secondary" onClick={downloadPdf} loading={downloading} size="sm">
             <Download size={14} />Download Report
           </Button>
@@ -104,6 +108,12 @@ export default function StudentDashboard() {
           </div>
         </div>
       )}
+
+      {/* Module 8: Skills & Performance Portfolio */}
+      <StudentPortfolio
+        studentId={activeStudentId}
+        studentName={user?.name || 'Demo Student'}
+      />
     </div>
   );
 }

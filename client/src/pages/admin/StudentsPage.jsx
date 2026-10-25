@@ -9,9 +9,10 @@ import Badge from '../../components/common/Badge';
 import Pagination from '../../components/common/Pagination';
 import EmptyState from '../../components/common/EmptyState';
 import { PageLoader } from '../../components/common/Spinner';
-import { Plus, Search, Edit, Download, Upload } from 'lucide-react';
+import { Plus, Search, Edit, Download, Upload, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { downloadBlob } from '../../utils/helpers';
+import StudentPortfolio from '../../components/students/StudentPortfolio';
 
 export default function StudentsPage() {
   const [data, setData] = useState([]);
@@ -32,6 +33,7 @@ export default function StudentsPage() {
   const [importClassId, setImportClassId] = useState('');
   const [importYearId, setImportYearId] = useState('');
   const [importLoading, setImportLoading] = useState(false);
+  const [portfolioStudent, setPortfolioStudent] = useState(null);
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
   const selectedClass = watch('class');
@@ -169,7 +171,10 @@ export default function StudentsPage() {
                     <td className="px-4 py-3 text-slate-500">{s.rollNumber || '—'}</td>
                     <td className="px-4 py-3"><Badge variant={s.isActive ? 'green' : 'red'}>{s.isActive ? 'Active' : 'Inactive'}</Badge></td>
                     <td className="px-4 py-3">
-                      <button onClick={() => openEdit(s)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Edit size={15} /></button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => openEdit(s)} title="Edit Student" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Edit size={15} /></button>
+                        <button onClick={() => setPortfolioStudent(s)} title="Skills & Performance Portfolio" className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"><Award size={15} /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -244,6 +249,24 @@ export default function StudentsPage() {
             </div>
           )}
         </div>
+      </Modal>
+
+      {/* Student Portfolio Modal */}
+      <Modal
+        open={!!portfolioStudent}
+        onClose={() => setPortfolioStudent(null)}
+        title={portfolioStudent ? `${portfolioStudent.name} — Skills & Performance Portfolio` : 'Student Portfolio'}
+        size="xl"
+      >
+        {portfolioStudent && (
+          <div className="max-h-[75vh] overflow-y-auto pr-1">
+            <StudentPortfolio
+              studentId={portfolioStudent._id}
+              studentName={portfolioStudent.name}
+              studentClass={portfolioStudent.class?.name || ''}
+            />
+          </div>
+        )}
       </Modal>
     </div>
   );

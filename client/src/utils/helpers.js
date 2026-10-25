@@ -17,7 +17,6 @@ export const downloadBlob = (blob, filename) => {
 export const ROLE_LABELS = {
   admin: 'Admin / Principal',
   class_teacher: 'Class Teacher',
-  skill_teacher: 'Skill Teacher',
-  student: 'Student',
-  parent: 'Parent',
+  skill_teacher: 'Skills Teacher',
 };
+

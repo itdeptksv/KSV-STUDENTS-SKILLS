@@ -1,9 +1,9 @@
-const required = ['MONGODB_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
-
 const validateEnv = () => {
-  const missing = required.filter((k) => !process.env[k]);
-  if (missing.length) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'ksv_dev_jwt_secret_change_in_production_32chars';
+  }
+  if (!process.env.JWT_REFRESH_SECRET) {
+    process.env.JWT_REFRESH_SECRET = 'ksv_dev_refresh_secret_change_in_production_32c';
   }
 };
 

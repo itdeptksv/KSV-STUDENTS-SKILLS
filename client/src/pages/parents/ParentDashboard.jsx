@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import { LEVEL_LABELS, LEVEL_COLORS, downloadBlob } from '../../utils/helpers';
 import { Download, User } from 'lucide-react';
 import toast from 'react-hot-toast';
+import StudentPortfolio from '../../components/students/StudentPortfolio';
 
 export default function ParentDashboard() {
   const { user } = useAuth();
@@ -125,6 +126,12 @@ export default function ParentDashboard() {
                     </div>
                   </div>
                 )}
+
+                {/* Skills & Performance Portfolio for Child */}
+                <StudentPortfolio
+                  studentId={selectedChild._id}
+                  studentName={selectedChild.name}
+                />
               </div>
             )}
           </div>

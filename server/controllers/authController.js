@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const DEMO_USERS = require('../config/demoUsers');
 const { ok } = require('../utils/response');
 const audit = require('../utils/audit');
 
@@ -14,6 +16,33 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body;
     if (!email || !password)
       return res.status(400).json({ success: false, message: 'Email and password required' });
+
+    const isLocalMode = process.env.LOCAL_MODE === 'true' || mongoose.connection.readyState !== 1;
+    if (isLocalMode) {
+      const demo = DEMO_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (!demo || !demo.isActive || password !== demo.password) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      const accessToken = signAccess(demo._id);
+      const refreshToken = signRefresh(demo._id);
+
+      await audit(demo._id, 'LOGIN', 'User', demo._id, null, req.ip);
+
+      return ok(res, {
+        accessToken,
+        refreshToken,
+        user: {
+          _id: demo._id,
+          name: demo.name,
+          email: demo.email,
+          role: demo.role,
+          assignedClasses: demo.assignedClasses || [],
+          assignedSkillAreas: demo.assignedSkillAreas || [],
+          assignedSubSkills: demo.assignedSubSkills || [],
+        },
+      }, 'Login successful');
+    }
 
     const user = await User.findOne({ email }).select('+password +refreshTokens');
     if (!user || !user.isActive)
@@ -51,6 +80,17 @@ exports.refresh = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
     }
 
+    const isLocalMode = process.env.LOCAL_MODE === 'true' || mongoose.connection.readyState !== 1;
+    if (isLocalMode) {
+      const demo = DEMO_USERS.find((u) => u._id === decoded.id);
+      if (!demo || !demo.isActive) {
+        return res.status(401).json({ success: false, message: 'User not found or inactive' });
+      }
+      const newAccess = signAccess(demo._id);
+      const newRefresh = signRefresh(demo._id);
+      return ok(res, { accessToken: newAccess, refreshToken: newRefresh });
+    }
+
     const user = await User.findById(decoded.id).select('+refreshTokens');
     if (!user || !user.isActive || !user.refreshTokens?.includes(refreshToken))
       return res.status(401).json({ success: false, message: 'Refresh token revoked' });
@@ -70,6 +110,14 @@ exports.refresh = async (req, res, next) => {
 
 exports.logout = async (req, res, next) => {
   try {
+    const isLocalMode = process.env.LOCAL_MODE === 'true' || mongoose.connection.readyState !== 1;
+    if (isLocalMode) {
+      if (req.user?._id) {
+        await audit(req.user._id, 'LOGOUT', 'User', req.user._id, null, req.ip);
+      }
+      return ok(res, null, 'Logged out');
+    }
+
     const { refreshToken } = req.body;
     const user = await User.findById(req.user._id).select('+refreshTokens');
     if (user && refreshToken) {

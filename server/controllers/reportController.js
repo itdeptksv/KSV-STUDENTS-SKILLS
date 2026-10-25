@@ -123,18 +123,31 @@ exports.competitionReport = async (req, res, next) => {
 
 exports.adminDashboard = async (req, res, next) => {
   try {
-    const [students, teachers, assessmentsPending, galleryPending] = await Promise.all([
-      require('../models/Student').countDocuments({ isActive: true }),
-      require('../models/User').countDocuments({ role: { $in: ['class_teacher', 'skill_teacher'] }, isActive: true }),
-      SkillAssessment.countDocuments({ status: 'submitted' }),
-      require('../models/Gallery').GalleryItem
-        ? require('../models/Gallery').GalleryItem.countDocuments({ status: 'pending' })
-        : Promise.resolve(0),
-    ]);
+    const Student = require('../models/Student');
+    const User = require('../models/User');
     const { GalleryItem } = require('../models/Gallery');
-    const galleryCount = await GalleryItem.countDocuments({ status: 'pending' });
     const Competition = require('../models/Competition');
-    const upcomingComps = await Competition.countDocuments({ status: { $in: ['upcoming', 'open'] } });
-    ok(res, { students, teachers, assessmentsPending, galleryPending: galleryCount, upcomingComps });
+    const { SkillArea, SubSkill } = require('../models/Skill');
+    const Class = require('../models/Class');
+    const { CompetitionResult } = require('../models/CompetitionResult');
+
+    const [students, teachers, assessmentsPending, galleryPending, upcomingComps,
+      skillAreas, subSkills, classes, totalAssessments, totalCompResults] = await Promise.all([
+      Student.countDocuments({ isActive: true }),
+      User.countDocuments({ role: { $in: ['class_teacher', 'skill_teacher'] }, isActive: true }),
+      SkillAssessment.countDocuments({ status: 'submitted' }),
+      GalleryItem.countDocuments({ status: 'pending' }),
+      Competition.countDocuments({ status: { $in: ['upcoming', 'open'] } }),
+      SkillArea.countDocuments({ isActive: true }),
+      SubSkill.countDocuments({ isActive: true }),
+      Class.countDocuments(),
+      SkillAssessment.countDocuments({ status: 'approved' }),
+      CompetitionResult.countDocuments(),
+    ]);
+
+    ok(res, {
+      students, teachers, assessmentsPending, galleryPending, upcomingComps,
+      skillAreas, subSkills, classes, totalAssessments, totalCompResults,
+    });
   } catch (err) { next(err); }
 };

@@ -9,11 +9,16 @@ import DashboardLayout from './components/layouts/DashboardLayout';
 
 import HomePage from './pages/public/HomePage';
 import SkillsPage from './pages/public/SkillsPage';
+import CategorySubSkillsPage from './pages/public/CategorySubSkillsPage';
+import SubSkillPerformancePage from './pages/public/SubSkillPerformancePage';
 import CompetitionsPage from './pages/public/CompetitionsPage';
 import GalleryPage from './pages/public/GalleryPage';
 import LoginPage from './pages/auth/LoginPage';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ClassTeacherDashboard from './pages/teachers/ClassTeacherDashboard';
+import SkillTeacherDashboard from './pages/teachers/SkillTeacherDashboard';
+import CommonViewPage from './pages/records/CommonViewPage';
 import UsersPage from './pages/admin/UsersPage';
 import StudentsPage from './pages/admin/StudentsPage';
 import ClassesPage from './pages/admin/ClassesPage';
@@ -25,20 +30,24 @@ import GalleryAdminPage from './pages/admin/GalleryAdminPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import AnnouncementsPage from './pages/admin/AnnouncementsPage';
 import SettingsPage from './pages/admin/SettingsPage';
-import StudentDashboard from './pages/students/StudentDashboard';
-import ParentDashboard from './pages/parents/ParentDashboard';
 import { announcements as annApi } from './services';
 import { formatDate } from './utils/helpers';
 
 const ADMIN = ['admin'];
 const TEACHERS = ['admin', 'class_teacher', 'skill_teacher'];
-const ALL_AUTH = ['admin', 'class_teacher', 'skill_teacher', 'student', 'parent'];
+const STAFF_AUTH = ['admin', 'class_teacher', 'skill_teacher'];
+
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Navigate to="/skills" replace /> : <Navigate to="/login" replace />;
+}
 
 function RoleDashboard() {
   const { user } = useAuth();
   if (!user) return null;
-  if (user.role === 'student') return <StudentDashboard />;
-  if (user.role === 'parent') return <ParentDashboard />;
+  if (user.role === 'class_teacher') return <ClassTeacherDashboard />;
+  if (user.role === 'skill_teacher') return <SkillTeacherDashboard />;
   return <AdminDashboard />;
 }
 
@@ -67,23 +76,24 @@ function AnnouncementsPublicPage() {
 
 function DashboardRoutes() {
   return (
-    <ProtectedRoute roles={ALL_AUTH}>
+    <ProtectedRoute roles={STAFF_AUTH}>
       <DashboardLayout>
         <Routes>
           <Route index element={<RoleDashboard />} />
+          <Route path="manage" element={<RoleDashboard />} />
+          <Route path="view" element={<Navigate to="/skills" replace />} />
+          <Route path="records" element={<Navigate to="/skills" replace />} />
           <Route path="users" element={<ProtectedRoute roles={ADMIN}><UsersPage /></ProtectedRoute>} />
           <Route path="classes" element={<ProtectedRoute roles={ADMIN}><ClassesPage /></ProtectedRoute>} />
           <Route path="academic" element={<ProtectedRoute roles={ADMIN}><AcademicPage /></ProtectedRoute>} />
           <Route path="settings" element={<ProtectedRoute roles={ADMIN}><SettingsPage /></ProtectedRoute>} />
           <Route path="announcements" element={<ProtectedRoute roles={ADMIN}><AnnouncementsPage /></ProtectedRoute>} />
-          <Route path="students" element={<ProtectedRoute roles={TEACHERS}><StudentsPage /></ProtectedRoute>} />
+          <Route path="students" element={<ProtectedRoute roles={['admin', 'class_teacher']}><StudentsPage /></ProtectedRoute>} />
           <Route path="skills" element={<ProtectedRoute roles={ADMIN}><SkillsAdminPage /></ProtectedRoute>} />
           <Route path="assessments" element={<ProtectedRoute roles={TEACHERS}><AssessmentsPage /></ProtectedRoute>} />
           <Route path="competitions" element={<ProtectedRoute roles={TEACHERS}><CompetitionsAdminPage /></ProtectedRoute>} />
           <Route path="gallery" element={<ProtectedRoute roles={TEACHERS}><GalleryAdminPage /></ProtectedRoute>} />
-          <Route path="reports" element={<ProtectedRoute roles={TEACHERS}><ReportsPage /></ProtectedRoute>} />
-          <Route path="my-profile" element={<ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>} />
-          <Route path="children" element={<ProtectedRoute roles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+          <Route path="reports" element={<ProtectedRoute roles={['admin', 'class_teacher']}><ReportsPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </DashboardLayout>
@@ -97,8 +107,12 @@ export default function App() {
       <AuthProvider>
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Routes>
-          <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="/home" element={<PublicLayout><HomePage /></PublicLayout>} />
+          <Route path="/about" element={<PublicLayout><HomePage /></PublicLayout>} />
           <Route path="/skills" element={<SkillsPage />} />
+          <Route path="/skills/:areaId" element={<CategorySubSkillsPage />} />
+          <Route path="/skills/:areaId/:subSkillId" element={<SubSkillPerformancePage />} />
           <Route path="/competitions" element={<CompetitionsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/announcements" element={<AnnouncementsPublicPage />} />
@@ -110,3 +124,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

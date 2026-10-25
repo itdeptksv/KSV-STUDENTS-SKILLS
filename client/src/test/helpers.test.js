@@ -32,12 +32,10 @@ describe('helpers', () => {
   });
 
   describe('ROLE_LABELS', () => {
-    it('has labels for all roles', () => {
+    it('has labels for all 3 supported roles', () => {
       expect(ROLE_LABELS.admin).toBe('Admin / Principal');
       expect(ROLE_LABELS.class_teacher).toBe('Class Teacher');
-      expect(ROLE_LABELS.skill_teacher).toBe('Skill Teacher');
-      expect(ROLE_LABELS.student).toBe('Student');
-      expect(ROLE_LABELS.parent).toBe('Parent');
+      expect(ROLE_LABELS.skill_teacher).toBe('Skills Teacher');
     });
   });
 });

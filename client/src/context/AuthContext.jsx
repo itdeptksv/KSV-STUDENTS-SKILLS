@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
     try { await apiLogout(refreshToken); } catch {}
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('ksv_current_user');
     setUser(null);
   }, []);
 

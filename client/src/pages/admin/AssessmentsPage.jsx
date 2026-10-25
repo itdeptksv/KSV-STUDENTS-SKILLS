@@ -9,10 +9,11 @@ import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import { useForm } from 'react-hook-form';
-import { Plus, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Eye, FileText, Image as ImageIcon, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDate, LEVEL_LABELS, LEVEL_COLORS } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
+import { storeFile } from '../../services/indexedDb';
 
 const STATUS_VARIANT = { draft: 'gray', submitted: 'yellow', approved: 'green', rejected: 'red' };
 
@@ -33,6 +34,8 @@ export default function AssessmentsPage() {
   const [subSkills, setSubSkills] = useState([]);
   const [terms, setTerms] = useState([]);
   const [years, setYears] = useState([]);
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [evidenceDesc, setEvidenceDesc] = useState('');
 
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm();
   const watchClass = watch('class');
@@ -72,10 +75,31 @@ export default function AssessmentsPage() {
   const onSubmitForm = async (values) => {
     setSaving(true);
     try {
-      await assessmentsApi.create({ ...values, assessmentDate: values.assessmentDate || new Date().toISOString(), level: parseInt(values.level) });
+      let evidence = [];
+      if (evidenceFile) {
+        const stored = await storeFile(evidenceFile, evidenceDesc);
+        evidence.push({
+          id: stored.id,
+          name: stored.name,
+          type: stored.type,
+          size: stored.size,
+          description: evidenceDesc || stored.name,
+          dataUrl: stored.dataUrl,
+          createdAt: stored.createdAt,
+        });
+      }
+
+      await assessmentsApi.create({
+        ...values,
+        assessmentDate: values.assessmentDate || new Date().toISOString(),
+        level: parseInt(values.level, 10),
+        evidence,
+      });
       toast.success('Assessment created');
       setCreateModal(false);
       reset();
+      setEvidenceFile(null);
+      setEvidenceDesc('');
       load();
     } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
     finally { setSaving(false); }
@@ -185,8 +209,27 @@ export default function AssessmentsPage() {
             <label className="block text-sm font-medium text-slate-700 mb-1">Remarks</label>
             <textarea {...register('remarks')} rows={3} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
+          <div className="sm:col-span-2 border-t border-slate-100 pt-3">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Evidence Attachment (Photo / Document)</label>
+            <input
+              type="file"
+              accept="image/*,.pdf,.doc,.docx"
+              onChange={(e) => setEvidenceFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+            />
+            {evidenceFile && (
+              <div className="mt-2">
+                <Input
+                  label="Photo / File Description"
+                  placeholder="e.g. Photo of student artwork, project or certificate"
+                  value={evidenceDesc}
+                  onChange={(e) => setEvidenceDesc(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
           <div className="sm:col-span-2 flex justify-end gap-3">
-            <Button variant="secondary" type="button" onClick={() => setCreateModal(false)}>Cancel</Button>
+            <Button variant="secondary" type="button" onClick={() => { setCreateModal(false); setEvidenceFile(null); setEvidenceDesc(''); }}>Cancel</Button>
             <Button type="submit" loading={saving}>Save Draft</Button>
           </div>
         </form>
@@ -217,6 +260,39 @@ export default function AssessmentsPage() {
               <div className="pt-2 border-t border-slate-100">
                 <p className="text-xs text-slate-400 mb-1">Remarks</p>
                 <p className="text-slate-700">{selected.remarks}</p>
+              </div>
+            )}
+            {selected.evidence && selected.evidence.length > 0 && (
+              <div className="pt-3 border-t border-slate-100">
+                <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Evidence & Photos</p>
+                <div className="space-y-2">
+                  {selected.evidence.map((ev, i) => (
+                    <div key={ev.id || i} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      {ev.dataUrl && (ev.type?.startsWith('image/') || ev.dataUrl.startsWith('data:image/')) && (
+                        <div className="mb-2">
+                          <img src={ev.dataUrl} alt={ev.description || ev.name} className="max-h-48 rounded object-cover border border-slate-200" />
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {ev.type?.startsWith('image/') ? <ImageIcon size={16} className="text-blue-600 shrink-0" /> : <FileText size={16} className="text-amber-600 shrink-0" />}
+                          <span className="font-medium text-slate-800 text-xs truncate max-w-[200px]">{ev.name}</span>
+                          {ev.size ? <span className="text-xs text-slate-400">({Math.round(ev.size / 1024)} KB)</span> : null}
+                        </div>
+                        {ev.dataUrl && (
+                          <a href={ev.dataUrl} download={ev.name} className="text-xs text-blue-600 hover:underline flex items-center gap-1 shrink-0">
+                            <Download size={12} /> Download
+                          </a>
+                        )}
+                      </div>
+                      {ev.description && (
+                        <p className="text-xs text-slate-600 mt-1 pl-6">
+                          <strong>Description:</strong> {ev.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

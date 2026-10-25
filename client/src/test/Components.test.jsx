@@ -14,6 +14,7 @@ describe('Component data constants', () => {
 
   it('role labels are defined', () => {
     expect(ROLE_LABELS.admin).toBeTruthy();
-    expect(ROLE_LABELS.parent).toBeTruthy();
+    expect(ROLE_LABELS.class_teacher).toBeTruthy();
+    expect(ROLE_LABELS.skill_teacher).toBeTruthy();
   });
 });

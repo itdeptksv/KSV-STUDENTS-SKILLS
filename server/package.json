@@ -8,6 +8,7 @@
     "dev": "node --watch server.js",
     "test": "jest --runInBand --forceExit",
     "seed": "node scripts/seed.js",
+    "seed:demo": "node scripts/seedDemo.js",
     "setup-admin": "node scripts/setupAdmin.js"
   },
   "jest": {
