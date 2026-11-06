@@ -1,20 +1,16 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { Award, BookOpen, Users, Trophy, Image, ArrowRight, Star, Target, Lightbulb } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { skills as skillsApi, competitions as compApi, announcements as annApi } from '../../services';
+import { skills as skillsApi } from '../../services';
 import { formatDate } from '../../utils/helpers';
 
 const SKILL_ICONS = ['📖', '✍️', '🎤', '👂', '🔢', '💻', '🎨', '🎵', '⚽', '🌟'];
 
 export default function HomePage() {
   const [skillAreas, setSkillAreas] = useState([]);
-  const [competitions, setCompetitions] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
     skillsApi.listAreas().then((r) => setSkillAreas(r.data.data || [])).catch(() => {});
-    compApi.list({ status: 'upcoming', limit: 3 }).then((r) => setCompetitions(r.data.data || [])).catch(() => {});
-    annApi.list().then((r) => setAnnouncements(r.data.data || [])).catch(() => {});
   }, []);
 
   return (
@@ -36,8 +32,8 @@ export default function HomePage() {
             <Link to="/skills" className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2">
               Explore Skills <ArrowRight size={16} />
             </Link>
-            <Link to="/competitions" className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-white/20">
-              View Competitions
+            <Link to="/gallery" className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-medium transition-colors border border-white/20">
+              View Gallery
             </Link>
           </div>
         </div>
@@ -90,54 +86,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Upcoming Competitions */}
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-[#1e3a5f]">Upcoming Competitions</h2>
-            <Link to="/competitions" className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
-              View all <ArrowRight size={14} />
-            </Link>
-          </div>
-          {competitions.length === 0 ? (
-            <p className="text-slate-400 text-center py-8">No upcoming competitions at this time.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {competitions.map((comp) => (
-                <Link key={comp._id} to={`/competitions/${comp._id}`}
-                  className="border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Trophy size={16} className="text-yellow-500" />
-                    <span className="text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full capitalize">{comp.status}</span>
-                  </div>
-                  <h3 className="font-semibold text-slate-800 mb-1">{comp.title}</h3>
-                  <p className="text-sm text-slate-500">{formatDate(comp.eventDate)}</p>
-                  {comp.venue && <p className="text-xs text-slate-400 mt-1">{comp.venue}</p>}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Announcements */}
-      {announcements.length > 0 && (
-        <section className="py-16 px-4 bg-slate-50">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-[#1e3a5f] mb-8">Announcements</h2>
-            <div className="space-y-4">
-              {announcements.slice(0, 3).map((ann) => (
-                <div key={ann._id} className="bg-white rounded-xl p-5 border border-slate-200">
-                  <h3 className="font-semibold text-slate-800 mb-1">{ann.title}</h3>
-                  <p className="text-sm text-slate-500">{ann.content}</p>
-                  <p className="text-xs text-slate-400 mt-2">{formatDate(ann.createdAt)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* CTA */}
       <section className="py-16 px-4 bg-[#1e3a5f] text-white">
         <div className="max-w-3xl mx-auto text-center">
@@ -151,3 +99,4 @@ export default function HomePage() {
     </div>
   );
 }
+

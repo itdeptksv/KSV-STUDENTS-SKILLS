@@ -5,14 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import { PageLoader } from '../common/Spinner';
 import toast from 'react-hot-toast';
 
-const navLinks = [
-  { to: '/home', label: 'Home' },
-  { to: '/about', label: 'About' },
-  { to: '/skills', label: 'Skill Areas' },
-  { to: '/competitions', label: 'Competitions' },
-  { to: '/gallery', label: 'Gallery' },
-  { to: '/announcements', label: 'Announcements' },
-];
+  const navLinks = [
+    { to: '/home', label: 'Home' },
+    { to: '/about', label: 'About' },
+    { to: '/skills', label: 'Skill Areas' },
+    { to: '/gallery', label: 'Gallery' },
+  ];
 
 export default function PublicLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
